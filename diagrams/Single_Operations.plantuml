@@ -1,0 +1,93 @@
+@startuml Single_Operations_Sequence_Diagram
+
+box "Single_Operations" #LightGreen
+participant main
+participant Job_Benchmarker
+participant benchmark_base
+participant specific_job
+end box
+
+activate main
+loop for each defined job
+main -> Job_Benchmarker: add_job(task, size)
+activate Job_Benchmarker
+end
+
+loop for each registered job
+Job_Benchmarker -> benchmark_base: start()
+activate benchmark_base
+activate specific_job
+
+benchmark_base -> benchmark_base: round_controller()
+activate benchmark_base
+
+loop < REP_NUMBER
+alt CPU
+loop < def_MAX_NUM_OF_THREADS
+benchmark_base -> benchmark_base: single_round()
+activate benchmark_base
+end
+deactivate benchmark_base
+else GPU
+benchmark_base -> benchmark_base: single_round()
+activate benchmark_base
+end
+
+alt CPU
+benchmark_base -> benchmark_base: omp_set_num_threads()
+else GPU
+benchmark_base -> specific_job: cuda_prep()
+specific_job -> specific_job: cudaMalloc()
+specific_job -> specific_job: cudaMemcpy(HostToDevice)
+specific_job -> benchmark_base
+end
+benchmark_base -> benchmark_base: timer.start()
+alt CPU
+benchmark_base -> benchmark_base: omp_launch()
+loop each thread processing \nportion of ARRAY_SIZE
+benchmark_base -> specific_job: cpu_task(i)
+
+...
+specific_job -> benchmark_base
+
+end
+else GPU
+benchmark_base -> specific_job: cuda_launch()
+
+specific_job -> specific_job: kernel<<<grid, block>>>gpu_task()
+loop each kernel processing \none element of ARRAY_SIZE
+specific_job -> specific_job: gpu_task(i)
+end
+activate specific_job
+specific_job -> specific_job: cudaDeviceSynchronize()
+deactivate specific_job
+...
+specific_job -> benchmark_base
+
+end
+benchmark_base -> benchmark_base: timer.end()
+
+
+alt GPU
+benchmark_base -> specific_job: cuda_finish()
+
+specific_job -> specific_job: cudaMemcpy(DeviceToHost)
+specific_job -> specific_job: cudaFree()
+specific_job -> benchmark_base
+
+end
+benchmark_base -> benchmark_base: save_stats()
+benchmark_base -> benchmark_base: single_round() ends
+deactivate benchmark_base
+end
+benchmark_base -> benchmark_base: round_controller() ends
+deactivate benchmark_base
+benchmark_base -> Job_Benchmarker: single job ends
+deactivate benchmark_base
+deactivate specific_job
+end
+
+Job_Benchmarker -> main
+deactivate Job_Benchmarker
+
+@enduml

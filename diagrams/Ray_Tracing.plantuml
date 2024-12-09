@@ -1,0 +1,92 @@
+@startuml Ray_Tracer
+
+box "Ray_Tracer" #LightGreen
+participant main
+participant Renderer_host
+participant Parallel_CPU
+participant Renderer_functions
+end box
+
+activate main
+main -> Renderer_host: setup
+activate Renderer_host
+loop while test_is_not_finished()
+main -> Renderer_host: RENDER()
+Renderer_host -> Renderer_host: new Stat_Record()
+alt CPU
+Renderer_host -> Parallel_CPU: thread_group_host_and_round_keeper()
+activate Parallel_CPU
+Parallel_CPU -> Parallel_CPU: start_threads()
+activate Parallel_CPU
+loop < REP_NUMBER
+Parallel_CPU -> Parallel_CPU: cpu_timer.start()
+loop each thread processing pixels in it's block
+Parallel_CPU -> Renderer_functions: per_pixel()
+activate Renderer_functions
+note right of Renderer_functions
+Main Ray Tracing Flow
+end note
+Renderer_functions -> Parallel_CPU
+deactivate Renderer_functions
+end
+Parallel_CPU -> Parallel_CPU: threads sync at the end of a round
+Parallel_CPU -> Parallel_CPU: cpu_timer.end()
+Parallel_CPU -> Parallel_CPU: save_stats
+end
+deactivate Parallel_CPU
+deactivate Renderer_functions
+Parallel_CPU -> Renderer_host
+deactivate Parallel_CPU
+else GPU
+Renderer_host -> Renderer_host: cudaMalloc()
+Renderer_host -> Renderer_host: cudaMemcpy(HostToDevice)
+loop < REP_NUMBER
+Renderer_host -> Renderer_host: kernel_timer.start()
+Renderer_host -> Renderer_host: render_kernel<<<>>>()
+activate Renderer_host
+loop each kernel processing one pixel
+note right of Renderer_functions
+Main Ray Tracing Flow in detail
+end note
+Renderer_host -> Renderer_functions: per_pixel()
+activate Renderer_functions
+loop < scene_BOUNCE_LIMIT
+Renderer_functions -> Renderer_functions: ray_looking_for_sphere()
+
+
+alt primary ray & no hit
+Renderer_functions -> Renderer_host: background_color()
+else primary ray & light source hit
+Renderer_functions -> Renderer_host: light_source_color()
+else NOT primary ray & light source hit
+Renderer_functions -> Renderer_functions: path.adding_light_color()
+
+
+
+Renderer_functions -> Renderer_host: backward_propagate_adding_color()
+
+
+
+else else
+Renderer_functions -> Renderer_functions: path.forward_add_hit()
+
+
+
+end
+end
+Renderer_functions -> Renderer_host: backward_propagate_adding_color()
+end
+deactivate Renderer_functions
+Renderer_host -> Renderer_host: cudaDeviceSynchronize()
+deactivate Renderer_host
+Renderer_host -> Renderer_host: kernel_timer.end()
+Renderer_host -> Renderer_host: save_stats
+Renderer_host -> Renderer_host: cudaMemcpy(DeviceToHost)
+end
+end
+Renderer_host -> main
+deactivate Renderer_host
+end
+main -> main: saving_stats_to_file()
+
+@enduml
