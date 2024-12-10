@@ -651,7 +651,6 @@ int main(int argc, char* argv[])
         string tmp_log = "CPU - AMD_Ryzen_5_5600X_6_Core_Processor_ - x64 - double -> Core Details 6 12 2.00 -> Scene Details FIRST - 2 - 11 - 2 -> Execution Details - 0 th 1 / 18 - measuring - <199703629, 213158616, 226178010> Odchylenie standardowe: 5.072518 { 199703629 213594209 226178010 }";
         auto [dev, min, avg, max, processor, model, arch, unit, physical_cores, logical_cores, core_proportion, scene, lights, spheres, bounces, num_of_threads, rating] = Format_Buffer::input_log_line_output_variables(tmp_log);
 
-
         string result = "";
         size_t pos = tmp_log.find('{');
         if (pos != std::string::npos)
