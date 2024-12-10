@@ -59,8 +59,6 @@ std::string calculate_time_difference() {
 #define time_stamp(x) std::cout << "\nTIME_STAMP: " << x << " " << get_current_local_time() << " (+ " << calculate_time_difference() << ")\n";
 // #define time_stamp(x) 
 
-
-
 void serialize_binary(const std::unordered_map<std::string, uint64_t>& map, const std::string& filename)
 {
     std::ofstream file(filename, std::ios::binary);
@@ -592,7 +590,6 @@ public:
             FILE << "\n";
 
 
-
             // writing VALUES //
 
             for(auto& x : X_line)
@@ -612,7 +609,10 @@ public:
                         continue;
                     }
 
-                    FILE << hash_value_for_line_with(x, list_of_line_params, list_of_chart_params) << ";";
+                    u64 value_in_nano = hash_value_for_line_with(x, list_of_line_params, list_of_chart_params);
+                    double value_in_ms = (double) value_in_nano / 1000000;
+
+                    FILE << setprecision(2) << value_in_ms << ";";
                 }
 
                 FILE << "\n";

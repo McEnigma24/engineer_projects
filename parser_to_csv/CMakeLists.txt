@@ -26,8 +26,21 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 # set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
 # target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
 
+# Targety
+# set(EXE_NAME "single_op_dev.exe")
+# add_executable(${EXE_NAME} ${SOURCES})
+# target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE_DEVIATION)
+# set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
+# target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
+
 set(EXE_NAME "main.exe")
 add_executable(${EXE_NAME} ${SOURCES})
 target_compile_definitions(${EXE_NAME} PRIVATE LINUX MAIN)
 set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
 target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
+
+# set(EXE_NAME "main_dev.exe")
+# add_executable(${EXE_NAME} ${SOURCES})
+# target_compile_definitions(${EXE_NAME} PRIVATE LINUX MAIN_DEVIATION)
+# set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
+# target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)

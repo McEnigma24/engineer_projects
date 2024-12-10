@@ -52,7 +52,7 @@ for filename in os.listdir(folder_path):
                         plt.figure(figsize=(10, 6))
                         for column in df.columns[1:]:
                             if df[column].notna().any():
-                                plt.plot(df["X"], df[column] / 1_000_000, label=column)  # Convert to milliseconds
+                                plt.plot(df["X"], df[column] / 1, label=column)  # Convert to milliseconds
 
                         # Set plot title, labels, and legend
                         plot_title = f"{filename.split('.')[0]} - {group_name}"                        
@@ -62,7 +62,7 @@ for filename in os.listdir(folder_path):
                         plt.ylabel("Measured time [ms]")
 
                         # Set y-ticks to be evenly spaced
-                        max_y_value = df.iloc[:, 1:].max().max() / 1_000_000
+                        max_y_value = df.iloc[:, 1:].max().max() / 1
                         y_ticks = np.linspace(0, max_y_value, num=10)
                         plt.yticks(y_ticks)
 
@@ -123,7 +123,7 @@ for filename in os.listdir(folder_path):
                 plt.figure(figsize=(10, 6))
                 for column in df.columns[1:]:
                     if df[column].notna().any():
-                        plt.plot(df["X"], df[column] / 1_000_000, label=column)
+                        plt.plot(df["X"], df[column] / 1, label=column)
 
                 plot_title = f"{filename.split('.')[0]} - {group_name}"
                 plot_file = f"{filename.split('.')[0]}___{group_name}"
@@ -131,7 +131,7 @@ for filename in os.listdir(folder_path):
                 plt.title(plot_title)
                 plt.ylabel("Measured time [ms]")
 
-                max_y_value = df.iloc[:, 1:].max().max() / 1_000_000
+                max_y_value = df.iloc[:, 1:].max().max() / 1
                 y_ticks = np.linspace(0, max_y_value, num=10)
                 plt.yticks(y_ticks)
 
