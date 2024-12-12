@@ -10,6 +10,19 @@
 #include <filesystem>
 #include <unordered_map>
 #include <omp.h>
+#include <cmath>
+
+#ifdef DEV
+#define DEV_LINE(...) __VA_ARGS__
+#else
+#define DEV_LINE(...) 
+#endif
+
+#ifdef AVG
+#define AVG_LINE(...) __VA_ARGS__
+#else
+#define AVG_LINE(...) 
+#endif
 
 template <typename T>
 bool contains(const T& value, const std::vector<T>& vec)

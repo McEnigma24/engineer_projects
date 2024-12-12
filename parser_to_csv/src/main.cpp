@@ -4,17 +4,25 @@
 
 #ifdef SINGLE
 #include "_SINGLE_.h"
-const string dir_serialized_maps = "serialized/single/";
+const string dir_serialized_maps = 
+AVG_LINE("serialized/avg/single/")
+DEV_LINE("serialized/dev/single/")
+;
 #endif
 
 #ifdef MAIN
 #include "_MAIN_.h"
-const string dir_serialized_maps = "serialized/main/";
+const string dir_serialized_maps = 
+AVG_LINE("serialized/avg/main/")
+DEV_LINE("serialized/dev/main/")
+;
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
 
 #include "_PARSER_Format_Buffer_Common_IMP_.h"
+
+#define INVALID_VALUE std::numeric_limits<double>::quiet_NaN()
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +67,7 @@ std::string calculate_time_difference() {
 #define time_stamp(x) std::cout << "\nTIME_STAMP: " << x << " " << get_current_local_time() << " (+ " << calculate_time_difference() << ")\n";
 // #define time_stamp(x) 
 
-void serialize_binary(const std::unordered_map<std::string, uint64_t>& map, const std::string& filename)
+void serialize_binary(const std::unordered_map<std::string, double>& map, const std::string& filename)
 {
     std::ofstream file(filename, std::ios::binary);
     if (!file) {
@@ -80,7 +88,7 @@ void serialize_binary(const std::unordered_map<std::string, uint64_t>& map, cons
 
     time_stamp("serialized " << filename)
 }
-std::unordered_map<std::string, uint64_t> deserialize_binary(const std::string& filename)
+std::unordered_map<std::string, double> deserialize_binary(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
@@ -90,7 +98,7 @@ std::unordered_map<std::string, uint64_t> deserialize_binary(const std::string& 
     size_t size;
     file.read(reinterpret_cast<char*>(&size), sizeof(size));
 
-    std::unordered_map<std::string, uint64_t> map;
+    std::unordered_map<std::string, double> map;
     for (size_t i = 0; i < size; ++i)
     {
         size_t key_size;
@@ -99,8 +107,7 @@ std::unordered_map<std::string, uint64_t> deserialize_binary(const std::string& 
         std::string key(key_size, '\0');
         file.read(&key[0], key_size);
 
-
-        uint64_t value;
+        double value;
         file.read(reinterpret_cast<char*>(&value), sizeof(value));
 
         map[key] = value;
@@ -116,7 +123,7 @@ class All_Category_Combinations
     ofstream FILE;
     vector<string> all_lines;
     vector<vector<string>> categories;
-    unordered_map<string, u64> hash_map;
+    unordered_map<string, double> hash_map;
 
     u64 in_which_category_can_we_find_this_value(const string& value)
     {
@@ -200,20 +207,21 @@ class All_Category_Combinations
                     {
                         string str = in_order_param_concatinator(x, parametry_linii, parametry_wykresu);
 
-                        u64 value = iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
-                        if(value == INVALID_VALUE) continue;
+                        double value = iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
+                        // if(value == INVALID_VALUE) continue;
+                        if(isnan(value)) continue;
 
                         hash_map[str] = value;
                     }
                 }
             }
-            time_stamp("hash table   DONE " << hash_table_name)
+            time_stamp("hash table   DONE " << hash_table_name);
 
             serialize_binary(hash_map, file_path);
         }
     }
     // HASH //
-    u64 hash_value_for_line_with(const string& x, const vector<string>& parametry_linii, const vector<string>& parametry_wykresu)
+    double hash_value_for_line_with(const string& x, const vector<string>& parametry_linii, const vector<string>& parametry_wykresu)
     {
         if(hash_map.find(in_order_param_concatinator(x, parametry_linii, parametry_wykresu)) != hash_map.end())
         {
@@ -223,15 +231,21 @@ class All_Category_Combinations
         return INVALID_VALUE;
     }
     // PARALLEL //
-    u64 iterative_value_for_line_with(const string& x, const vector<string>& parametry_linii, const vector<string>& parametry_wykresu)
+    double iterative_value_for_line_with(const string& x, const vector<string>& parametry_linii, const vector<string>& parametry_wykresu)
     {
         vector<string> all_params_that_need_to_be_present;
         all_params_that_need_to_be_present.push_back(x);
         all_params_that_need_to_be_present.insert(all_params_that_need_to_be_present.end(), parametry_linii.begin(), parametry_linii.end());
         all_params_that_need_to_be_present.insert(all_params_that_need_to_be_present.end(), parametry_wykresu.begin(), parametry_wykresu.end());
 
-        u64 ret;
+        double ret;
         bool stop = false;
+
+        #define assing_to_ret \
+        ret = \
+        AVG_LINE((double)read_VALUE_avg / 1000000) \
+        DEV_LINE(read_VALUE_rel_dev) \
+        ;
 
         omp_set_num_threads(12);
         #pragma omp parallel for schedule(static) shared(ret, stop)
@@ -250,8 +264,9 @@ class All_Category_Combinations
 
                         if(i == 0)
                         {
-                            auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[0]);
-                            ret = read_VALUE_avg;
+                            auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[i]);
+
+                            assing_to_ret;
                         }
                         else
                         {
@@ -268,7 +283,8 @@ class All_Category_Combinations
                             }
 
                             auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[x + 1]);
-                            ret = read_VALUE_avg;
+
+                            assing_to_ret;
                         }
                     }
                 }
@@ -490,7 +506,9 @@ private:
     }
     bool combination_has_value(const string x, const vector<string>& line_params, const vector<string>& chart_params)
     {
-        return INVALID_VALUE != hash_value_for_line_with(x, line_params, chart_params);
+        // return INVALID_VALUE != hash_value_for_line_with(x, line_params, chart_params);
+
+        return ! isnan(hash_value_for_line_with(x, line_params, chart_params));
     }
     bool check_for_repeating_categories(const category_index& ind_X, const vector<category_index>& ind_LINEs, const vector<category_index>& ind_CHARTs)
     {
@@ -532,6 +550,19 @@ public:
     ~All_Category_Combinations()
     {
         FILE.close();
+
+        time_stamp("parser - starting...");
+
+        #ifdef MAIN
+            AVG_LINE(system("python3 src/charter.py demo_charts_main_avg Main_avg.csv");)
+            DEV_LINE(system("python3 src/charter.py demo_charts_main_dev Main_dev.csv");)
+        #endif
+        #ifdef SINGLE
+            AVG_LINE(system("python3 src/charter.py demo_charts_single_avg SingleOp_avg.csv");)
+            DEV_LINE(system("python3 src/charter.py demo_charts_single_dev SingleOp_dev.csv");)
+        #endif
+
+        time_stamp("parser - DONE");
     }
 
     void start(category_index ind_X, vector<category_index> ind_LINEs, vector<category_index> ind_CHARTs, bool fill_unused_indexes_param = false, vector<category_index> ind_TO_SKIP = {})
@@ -609,10 +640,10 @@ public:
                         continue;
                     }
 
-                    u64 value_in_nano = hash_value_for_line_with(x, list_of_line_params, list_of_chart_params);
-                    double value_in_ms = (double) value_in_nano / 1000000;
+                    // u64 value_in_nano = hash_value_for_line_with(x, list_of_line_params, list_of_chart_params);
+                    // double value_in_ms = (double) value_in_nano / 1000000;
 
-                    FILE << setprecision(2) << value_in_ms << ";";
+                    FILE << setprecision(2) << hash_value_for_line_with(x, list_of_line_params, list_of_chart_params) << ";";
                 }
 
                 FILE << "\n";
@@ -638,7 +669,10 @@ int main(int argc, char* argv[])
     #ifdef MAIN
 
         #ifdef PACKED
-            All_Category_Combinations comb("input/Ray_Tracer", "output/Main.csv");
+            All_Category_Combinations comb("input/Ray_Tracer", 
+            AVG_LINE("output/Main_avg.csv")
+            DEV_LINE("output/Main_dev.csv")
+            );
         #else
             All_Category_Combinations comb("../Ray_Tracer/output", "output/Main.csv");
         #endif
@@ -687,7 +721,10 @@ int main(int argc, char* argv[])
     #ifdef SINGLE
 
         #ifdef PACKED
-            All_Category_Combinations comb("input/Single_Operations", "output/SingleOp.csv");
+            All_Category_Combinations comb("input/Single_Operations", 
+            AVG_LINE("output/SingleOp_avg.csv")
+            DEV_LINE("output/SingleOp_dev.csv")
+            );
         #else
             All_Category_Combinations comb("../Single_Operations/output", "output/SingleOp.csv");
         #endif

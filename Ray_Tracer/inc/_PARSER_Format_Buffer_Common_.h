@@ -2,8 +2,6 @@
 
 // COMMON //
 
-#define INVALID_VALUE 0xFFFFFFFFFFFFFFFF
-
 #define BUFFER_SIZE 10000
 
 #define add(a, x, b) a##x##b

@@ -7,8 +7,10 @@ DIR_PD="_PACKED_DATA_"
 DIR_R="Ray_Tracer"
 DIR_S="Single_Operations"
 DIR_SER="serialized"
-DIR_SER_M="${DIR_SER}/main"
-DIR_SER_S="${DIR_SER}/single"
+DIR_SER_avg="${DIR_SER}/avg"
+DIR_SER_dev="${DIR_SER}/dev"
+DIR_SER_M="main"
+DIR_SER_S="single"
 DIR_TMP="tmp_dir"
 var_start=""
 
@@ -30,14 +32,31 @@ timer_end()
 }
 
 clear_dir() { if [ -d $1 ]; then rm -rf $1; fi; mkdir $1; }
+clear_dir_nested() { cd $1; clear_dir "$2"; cd - > /dev/null; }
 create_dir() { if [ ! -d $1 ]; then mkdir $1; fi; }
+create_dir_nested() { cd $1; create_dir "$2"; cd - > /dev/null; }
 env_prep()
 {
     chmod +x $DIR_SCRIPTS/*.sh
 
     create_dir "$DIR_SER"
-    create_dir "$DIR_SER_M"
-    create_dir "$DIR_SER_S"
+    create_dir "$DIR_SER_avg"
+    {
+        create_dir_nested "$DIR_SER_avg" "$DIR_SER_M"
+        create_dir_nested "$DIR_SER_avg" "$DIR_SER_S"
+    }
+    create_dir "$DIR_SER_dev"
+    {
+        create_dir_nested "$DIR_SER_dev" "$DIR_SER_M"
+        create_dir_nested "$DIR_SER_dev" "$DIR_SER_S"
+    }
+
+
+    # kasowanie dotychczasowo otworzonych
+    cd $DIR_INPUT
+    clear_dir "$DIR_R"
+    clear_dir "$DIR_S"
+    cd ..
 }
 unpack_logs()
 {
@@ -112,14 +131,14 @@ reset_serialized_hash_maps_if_input_changed()
         rm -f "$path_TMP_input_check"
     fi
 }
-parser()
-{
-    cd ..
-    echo ""
-    echo -n "Creating demo charts - "
-    python3 src/charter.py
-    echo -e "DONE\n"
-}
+# parser()
+# {
+#     cd ..
+#     echo ""
+#     echo -n "Creating demo charts - "
+#     python3 src/charter.py
+#     echo -e "DONE\n"
+# }
 
 ############################################################################
 
@@ -130,11 +149,6 @@ if [ "$DONT_CLEAR" == "" ]; then
 fi
 
 env_prep
-
-cd $DIR_INPUT
-clear_dir "$DIR_R"
-clear_dir "$DIR_S"
-cd ..
 
 unpack_logs
 
@@ -148,6 +162,6 @@ if [ "$DONT_CLEAR" != "" ]; then
 else
     ./run.sh
 fi
-
-parser
 timer_end
+
+# parser
