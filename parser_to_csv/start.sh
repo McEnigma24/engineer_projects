@@ -3,12 +3,16 @@
 DONT_CLEAR="$1"
 DIR_SCRIPTS="scripts"
 DIR_INPUT="input"
+DIR_INPUT_og="${DIR_INPUT}/original"
+DIR_INPUT_filtered="${DIR_INPUT}/filtered"
 DIR_PD="_PACKED_DATA_"
 DIR_R="Ray_Tracer"
 DIR_S="Single_Operations"
 DIR_SER="serialized"
-DIR_SER_avg="${DIR_SER}/avg"
-DIR_SER_dev="${DIR_SER}/dev"
+DIR_SER_avg="avg"
+DIR_SER_dev="dev"
+DIR_SER_og="original"
+DIR_SER_filt="filtered"
 DIR_SER_M="main"
 DIR_SER_S="single"
 DIR_TMP="tmp_dir"
@@ -40,23 +44,41 @@ env_prep()
     chmod +x $DIR_SCRIPTS/*.sh
 
     create_dir "$DIR_SER"
-    create_dir "$DIR_SER_avg"
+    create_dir "$DIR_SER/$DIR_SER_avg"
     {
-        create_dir_nested "$DIR_SER_avg" "$DIR_SER_M"
-        create_dir_nested "$DIR_SER_avg" "$DIR_SER_S"
+        create_dir_nested "$DIR_SER/$DIR_SER_avg" "$DIR_SER_M"
+        {
+            create_dir_nested "$DIR_SER/$DIR_SER_avg/$DIR_SER_M" "$DIR_SER_og"
+            create_dir_nested "$DIR_SER/$DIR_SER_avg/$DIR_SER_M" "$DIR_SER_filt"
+        }
+        create_dir_nested "$DIR_SER/$DIR_SER_avg" "$DIR_SER_S"
+        {
+            create_dir_nested "$DIR_SER/$DIR_SER_avg/$DIR_SER_S" "$DIR_SER_og"
+            create_dir_nested "$DIR_SER/$DIR_SER_avg/$DIR_SER_S" "$DIR_SER_filt"
+        }
     }
-    create_dir "$DIR_SER_dev"
+    create_dir "$DIR_SER/$DIR_SER_dev"
     {
-        create_dir_nested "$DIR_SER_dev" "$DIR_SER_M"
-        create_dir_nested "$DIR_SER_dev" "$DIR_SER_S"
+        create_dir_nested "$DIR_SER/$DIR_SER_dev" "$DIR_SER_M"
+        {
+            create_dir_nested "$DIR_SER/$DIR_SER_dev/$DIR_SER_M" "$DIR_SER_og"
+            create_dir_nested "$DIR_SER/$DIR_SER_dev/$DIR_SER_M" "$DIR_SER_filt"
+        }
+        create_dir_nested "$DIR_SER/$DIR_SER_dev" "$DIR_SER_S"
+        {
+            create_dir_nested "$DIR_SER/$DIR_SER_dev/$DIR_SER_S" "$DIR_SER_og"
+            create_dir_nested "$DIR_SER/$DIR_SER_dev/$DIR_SER_S" "$DIR_SER_filt"
+        }
     }
 
+    create_dir "$DIR_INPUT_og"
+    create_dir "$DIR_INPUT_filtered"
 
-    # kasowanie dotychczasowo otworzonych
-    cd $DIR_INPUT
-    clear_dir "$DIR_R"
-    clear_dir "$DIR_S"
-    cd ..
+    # # kasowanie dotychczasowo otworzonych
+    # cd $DIR_INPUT
+    # clear_dir "$DIR_R"
+    # clear_dir "$DIR_S"
+    # cd ..
 }
 unpack_logs()
 {
@@ -150,7 +172,7 @@ fi
 
 env_prep
 
-unpack_logs
+# unpack_logs
 
 reset_serialized_hash_maps_if_input_changed
 

@@ -5,16 +5,22 @@
 #ifdef SINGLE
 #include "_SINGLE_.h"
 const string dir_serialized_maps = 
-AVG_LINE("serialized/avg/single/")
-DEV_LINE("serialized/dev/single/")
+AVG_LINE(string("serialized/avg/single/"))
+DEV_LINE(string("serialized/dev/single/"))
++
+ORIGINAL_LINE(string("original/"))
+FILTERED_LINE(string("filtered/"))
 ;
 #endif
 
 #ifdef MAIN
 #include "_MAIN_.h"
 const string dir_serialized_maps = 
-AVG_LINE("serialized/avg/main/")
-DEV_LINE("serialized/dev/main/")
+AVG_LINE(string("serialized/avg/main/"))
+DEV_LINE(string("serialized/dev/main/"))
++
+ORIGINAL_LINE(string("original/"))
+FILTERED_LINE(string("filtered/"))
 ;
 #endif
 
@@ -669,7 +675,10 @@ int main(int argc, char* argv[])
     #ifdef MAIN
 
         #ifdef PACKED
-            All_Category_Combinations comb("input/Ray_Tracer", 
+            All_Category_Combinations comb(
+            ORIGINAL_LINE("input/original/Ray_Tracer")
+            FILTERED_LINE("input/filtered/Ray_Tracer")
+            ,
             AVG_LINE("output/Main_avg.csv")
             DEV_LINE("output/Main_dev.csv")
             );
@@ -721,7 +730,10 @@ int main(int argc, char* argv[])
     #ifdef SINGLE
 
         #ifdef PACKED
-            All_Category_Combinations comb("input/Single_Operations", 
+            All_Category_Combinations comb(
+            ORIGINAL_LINE("input/original/Single_Operations")
+            FILTERED_LINE("input/filtered/Single_Operations")
+            ,
             AVG_LINE("output/SingleOp_avg.csv")
             DEV_LINE("output/SingleOp_dev.csv")
             );

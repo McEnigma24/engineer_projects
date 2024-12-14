@@ -12,6 +12,18 @@
 #include <omp.h>
 #include <cmath>
 
+#ifdef ORIGINAL
+#define ORIGINAL_LINE(...) __VA_ARGS__
+#else
+#define ORIGINAL_LINE(...) 
+#endif
+
+#ifdef FILTERED
+#define FILTERED_LINE(...) __VA_ARGS__
+#else
+#define FILTERED_LINE(...) 
+#endif
+
 #ifdef DEV
 #define DEV_LINE(...) __VA_ARGS__
 #else
