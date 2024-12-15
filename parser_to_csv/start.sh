@@ -21,6 +21,15 @@ var_start=""
 path_input_check="${DIR_SCRIPTS}/input_checksum.txt"
 path_TMP_input_check="${DIR_SCRIPTS}/TMP_input_checksum.txt"
 
+clear_file() { if [ -f $1 ]; then rm -rf $1; fi; }
+clear_file_nested() { cd $1; clear_file "$2"; cd - > /dev/null; }
+
+clear_dir() { if [ -d $1 ]; then rm -rf $1; fi; mkdir $1; }
+clear_dir_nested() { cd $1; clear_dir "$2"; cd - > /dev/null; }
+
+create_dir() { if [ ! -d $1 ]; then mkdir $1; fi; }
+create_dir_nested() { cd $1; create_dir "$2"; cd - > /dev/null; }
+
 timer_start()
 {
     var_start=$(date +%s)
@@ -34,11 +43,6 @@ timer_end()
     seconds=$((elapsed % 60))
     printf "Parser - took: %02d:%02d:%02d\n" $hours $minutes $seconds
 }
-
-clear_dir() { if [ -d $1 ]; then rm -rf $1; fi; mkdir $1; }
-clear_dir_nested() { cd $1; clear_dir "$2"; cd - > /dev/null; }
-create_dir() { if [ ! -d $1 ]; then mkdir $1; fi; }
-create_dir_nested() { cd $1; create_dir "$2"; cd - > /dev/null; }
 env_prep()
 {
     chmod +x $DIR_SCRIPTS/*.sh
