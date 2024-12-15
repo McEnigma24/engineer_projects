@@ -76,7 +76,7 @@ env_prep()
     }
 
     create_dir "$DIR_INPUT_og"
-    create_dir "$DIR_INPUT_filtered"
+    # create_dir "$DIR_INPUT_filtered" // simlink to filtered output
 
     # # kasowanie dotychczasowo otworzonych
     # cd $DIR_INPUT

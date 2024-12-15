@@ -76,7 +76,8 @@ std::string calculate_time_difference() {
 void serialize_binary(const std::unordered_map<std::string, double>& map, const std::string& filename)
 {
     std::ofstream file(filename, std::ios::binary);
-    if (!file) {
+    if (!file)
+    {
         throw std::ios_base::failure("Failed to open file for writing");
     }
 
@@ -97,7 +98,8 @@ void serialize_binary(const std::unordered_map<std::string, double>& map, const 
 std::unordered_map<std::string, double> deserialize_binary(const std::string& filename)
 {
     std::ifstream file(filename, std::ios::binary);
-    if (!file) {
+    if (!file)
+    {
         throw std::ios_base::failure("Failed to open file for reading");
     }
 
@@ -195,7 +197,8 @@ class All_Category_Combinations
         const string file_path = dir_serialized_maps + hash_table_name + ".bin";
 
         ifstream FILE(file_path);
-        if(FILE.is_open())
+        std::ifstream test_file(file_path, std::ios::binary);
+        if(FILE.is_open() && test_file)
         {
             hash_map = deserialize_binary(file_path);
         }
@@ -491,13 +494,14 @@ private:
     }
     bool combination_possible_with_at_least_one_X(const vector<string>& X_line, const vector<string>& line_params, const vector<string>& chart_params)
     {
+        int counter = 0;
         for(auto& x : X_line)
         {
             if(combination_has_value(x, line_params, chart_params))
-                return true;
+                counter++;
         }
 
-        return false;
+        return counter >= 2;
     }
     bool combination_possible_with_at_least_one_LINE(const string& x, const vector<vector<string>>& LINE_combinations, const vector<string>& chart_params)
     {
@@ -556,16 +560,28 @@ public:
     ~All_Category_Combinations()
     {
         FILE.close();
-
         time_stamp("parser - starting...");
 
-        #ifdef MAIN
-            AVG_LINE(system("python3 src/charter.py demo_charts_main_avg Main_avg.csv");)
-            DEV_LINE(system("python3 src/charter.py demo_charts_main_dev Main_dev.csv");)
+        #ifdef ORIGINAL
+            #ifdef MAIN
+                AVG_LINE(system("python3 src/charter.py demo_charts_main_avg_og Main_avg_og.csv");)
+                DEV_LINE(system("python3 src/charter.py demo_charts_main_dev_og Main_dev_og.csv");)
+            #endif
+            #ifdef SINGLE
+                AVG_LINE(system("python3 src/charter.py demo_charts_single_avg_og SingleOp_avg_og.csv");)
+                DEV_LINE(system("python3 src/charter.py demo_charts_single_dev_og SingleOp_dev_og.csv");)
+            #endif
         #endif
-        #ifdef SINGLE
-            AVG_LINE(system("python3 src/charter.py demo_charts_single_avg SingleOp_avg.csv");)
-            DEV_LINE(system("python3 src/charter.py demo_charts_single_dev SingleOp_dev.csv");)
+
+         #ifdef FILTERED
+            #ifdef MAIN
+                AVG_LINE(system("python3 src/charter.py demo_charts_main_avg_filt Main_avg_filt.csv");)
+                DEV_LINE(system("python3 src/charter.py demo_charts_main_dev_filt Main_dev_filt.csv");)
+            #endif
+            #ifdef SINGLE
+                AVG_LINE(system("python3 src/charter.py demo_charts_single_avg_filt SingleOp_avg_filt.csv");)
+                DEV_LINE(system("python3 src/charter.py demo_charts_single_dev_filt SingleOp_dev_filt.csv");)
+            #endif
         #endif
 
         time_stamp("parser - DONE");
@@ -606,8 +622,7 @@ public:
         for(auto& list_of_chart_params : GROUP_CHART_combinations)
         {
             if(!combination_possible_in_this_group(X_line, LINE_combinations, list_of_chart_params)) { continue; }
-            if(contains<string>("measuring", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
-            if(contains<string>("GPU", list_of_chart_params) && contains<string>("0", X_line)) { continue; } // tam jest zawsze 0
+            if(contains<string>("measuring_r", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
             
             // po kolei wyświetlam każdy parametr CHART
             FILE << "GROUP;";
@@ -679,35 +694,23 @@ int main(int argc, char* argv[])
             ORIGINAL_LINE("input/original/Ray_Tracer")
             FILTERED_LINE("input/filtered/Ray_Tracer")
             ,
-            AVG_LINE("output/Main_avg.csv")
-            DEV_LINE("output/Main_dev.csv")
+            string(
+            AVG_LINE("output/Main_avg")
+            DEV_LINE("output/Main_dev")
+            )
+            +
+            string(
+            ORIGINAL_LINE("_og")
+            FILTERED_LINE("_filt")
+            )
+            +
+            string(".csv")
             );
         #else
             All_Category_Combinations comb("../Ray_Tracer/output", "output/Main.csv");
         #endif
-
-        // string tmp_log = "CPU - AMD_Ryzen_5_5600X_6_Core_Processor_ - x64 - double -> Core Details 6 12 2.00 -> Scene Details FIRST - 2 - 11 - 2 -> Execution Details - 0 th 1 / 18 - measuring - <188186782, 191241194, 209955701> Odchylenie standardowe: 55.5 -> Raw Data points {1, 2, 3}";
-        // auto [dev, min, avg, max, processor, model, arch, unit, physical_cores, logical_cores, core_proportion, scene, lights, spheres, bounces, num_of_threads, rating] = Format_Buffer::input_log_line_output_variables(tmp_log);
-
-        // var(dev); var(min); var(avg); var(max); var(processor); var(model); var(arch); var(unit); var(physical_cores); var(logical_cores); var(core_proportion); var(scene); var(lights); var(spheres); var(bounces); var(num_of_threads); var(rating);
-
-        string tmp_log = "CPU - AMD_Ryzen_5_5600X_6_Core_Processor_ - x64 - double -> Core Details 6 12 2.00 -> Scene Details FIRST - 2 - 11 - 2 -> Execution Details - 0 th 1 / 18 - measuring - <199703629, 213158616, 226178010> Odchylenie standardowe: 5.072518 { 199703629 213594209 226178010 }";
-        auto [dev, min, avg, max, processor, model, arch, unit, physical_cores, logical_cores, core_proportion, scene, lights, spheres, bounces, num_of_threads, rating] = Format_Buffer::input_log_line_output_variables(tmp_log);
-
-        string result = "";
-        size_t pos = tmp_log.find('{');
-        if (pos != std::string::npos)
-        {
-            result = tmp_log.substr(pos + 1);
-            result = result.substr(0, result.size() - 2);
-        }
-
-        var(result);
         
-        
-
         // { PROCESSOR, MODEL, ARCH, UNIT, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, SCENE, LIGHTS, SPHERES, BOUNCES, NUM_OF_THREADS, RATING };
-
 
         // BEST vs FIRST //
         comb.start(SCENE, {MODEL, ARCH, UNIT}, {RATING}, true, {LIGHTS, SPHERES, BOUNCES, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, NUM_OF_THREADS});
@@ -734,15 +737,23 @@ int main(int argc, char* argv[])
             ORIGINAL_LINE("input/original/Single_Operations")
             FILTERED_LINE("input/filtered/Single_Operations")
             ,
-            AVG_LINE("output/SingleOp_avg.csv")
-            DEV_LINE("output/SingleOp_dev.csv")
+            string(
+            AVG_LINE("output/SingleOp_avg")
+            DEV_LINE("output/SingleOp_dev")
+            )
+            +
+            string(
+            ORIGINAL_LINE("_og")
+            FILTERED_LINE("_filt")
+            )
+            +
+            string(".csv")
             );
         #else
             All_Category_Combinations comb("../Single_Operations/output", "output/SingleOp.csv");
         #endif
 
         // { PROCESSOR, MODEL, ARCH, UNIT, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, TASK, SIZE, NUM_OF_THREADS, RATING };
-
 
         comb.start(SIZE, {MODEL, ARCH, UNIT}, {TASK, RATING}, true, {NUM_OF_THREADS, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
 

@@ -1,4 +1,5 @@
 #include "__preprocessor__.h"
+#include "stats_pack.h"
 #include <filesystem>
 #include <vector>
 
@@ -83,21 +84,113 @@ string data_points_to_string(const vector<u64>& all_raw_data_points)
     return ret;
 }
 
+void adding_unique_strings(tupl& all_tuples)
+{
+    auto& [adding_read] = all_tuples;
+
+    read_processor += "_proc";
+    read_model += "_mod";
+    read_arch += "_arch";
+    read_unit += "_unit";
+    read_physical_cores += "_p_cores";
+    read_logical_cores += "_l_cores";
+    read_core_proportion += "_prop_cores";
+
+    read_num_of_threads += "_th";
+    read_rating += "_r";
+
+    #ifdef MAIN
+        read_scene += "_scene";
+        read_lights += "_lights";
+        read_spheres += "_spheres";
+        read_bounces += "_bounces";
+    #endif
+    #ifdef SINGLE
+        read_task += "_task";
+        read_size += "_size";
+    #endif
+}
+
+double deviation_of_single_point(const u64 _x, const u64 _avg)
+{
+    double x = _x;
+    double avg = _avg;
+
+    double difference = x - avg;
+    difference = pow2(difference);
+    difference = sqrt(difference);
+
+    return 100 * (difference / avg);
+}
+
+vector<u64> single_line_recal(tupl& all_tuples, const vector<u64>& all_raw_data_points)
+{
+    auto& [adding_read] = all_tuples;
+    stats_pack filtered_stats;
+
+    for(auto& x : all_raw_data_points)
+    {
+        if(not(100.0 < deviation_of_single_point(x, read_VALUE_avg)))
+        {
+            filtered_stats.push(x);
+        }
+    }
+
+    auto [min, avg, max, rel_dev] = filtered_stats.get();
+
+    read_VALUE_min = min;
+    read_VALUE_avg = avg;
+    read_VALUE_max = max;
+    read_VALUE_rel_dev = rel_dev;
+
+    return filtered_stats.get_data();
+}
+
+static u64 best_time_so_far;
+static string best_cpu_thread;
+
 string modyfied_line(tupl& all_tuples, const string& whole_line)
 {
     auto& [adding_read] = all_tuples;
     vector<u64> all_raw_data_points = get_all_raw_data_points(raw_data_points_STR(whole_line));
 
-    // tutaj może być usuwanie odstających + modyfikacja wartości z tupla
+    // line mods
+    adding_unique_strings(all_tuples);
+    vector<u64> filtered_data_points = single_line_recal(all_tuples, all_raw_data_points);
 
-    // read_VALUE_rel_dev = 6.9;
-    // read_VALUE_min = 1;
-    // read_VALUE_avg = 2;
-    // read_VALUE_max = 3;
+    // group stats mods
+    string ret = Format_Buffer::input_variables_return_log_line(all_tuples) + " " + data_points_to_string(filtered_data_points);
+    {
+        #define assing_current_values \
+        { \
+          best_time_so_far = read_VALUE_avg; \
+          read_rating = "BEST_r"; \
+          best_cpu_thread = Format_Buffer::input_variables_return_log_line(all_tuples) + " " + data_points_to_string(filtered_data_points); \
+        }
 
-    // potem łapanie na bierząco najlepszego czasu dla kategorii (tylko dla CPU, reset kiedy jest thread == 1, może być prosta zmienna static w której zapiszę rekalkulowaną wersję linijki)
-    string ret = Format_Buffer::input_variables_return_log_line(all_tuples) + " " + data_points_to_string(all_raw_data_points);
-    // static save
+        if(read_processor == "CPU_proc")
+        {
+            if(read_rating != "BEST_r")
+            {
+                if(read_num_of_threads == "1_th")
+                {
+                    assing_current_values;
+                }
+                else
+                {
+                    if(read_VALUE_avg < best_time_so_far)
+                    {
+                        assing_current_values;
+                    }
+                }
+            }
+            else // LINE WITH BEST in IT -> needs to be changed with the saved one
+            {
+                return best_cpu_thread;
+            }
+        }
+    }
+
     return ret;
 }
 
