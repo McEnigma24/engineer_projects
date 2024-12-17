@@ -249,7 +249,7 @@ class All_Category_Combinations
         all_params_that_need_to_be_present.insert(all_params_that_need_to_be_present.end(), parametry_linii.begin(), parametry_linii.end());
         all_params_that_need_to_be_present.insert(all_params_that_need_to_be_present.end(), parametry_wykresu.begin(), parametry_wykresu.end());
 
-        double ret;
+        double ret = INVALID_VALUE;
         bool stop = false;
 
         #define assing_to_ret \
@@ -260,68 +260,51 @@ class All_Category_Combinations
 
         omp_set_num_threads(12);
 
-        time_stamp("iterative search " << all_lines.size());
+        // time_stamp("iterative search " << all_lines.size());
 
-        // u64 chunk_size = NUM_2(100, 000);
-        // u64 counter{};
-        // u64 start{};
-        // u64 end{};
+        #pragma omp parallel for schedule(static) shared(ret, stop)
+        for(u64 i = 0; i < all_lines.size(); i++)
+        {
+            if(stop) continue;
+            auto tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[i]);
 
-        // for(;;)
-        // {
-        //     start = (counter) * chunk_size;
-        //     end = (counter + 1) * chunk_size;
-        //     if(end > all_lines.size()) { end = all_lines.size(); }
-
-            #pragma omp parallel for schedule(static) shared(ret, stop)
-            // for(u64 i = start; i < end; i++)
-            for(u64 i = 0; i < all_lines.size(); i++)
+            if(is_every_param_present(all_params_that_need_to_be_present, tuple_output))
             {
-                if(stop) continue;
-                auto tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[i]);
-
-                if(is_every_param_present(all_params_that_need_to_be_present, tuple_output))
+                #pragma omp critical
                 {
-                    #pragma omp critical
+                    if(!stop)
                     {
-                        if(!stop)
+                        stop = true;
+
+                        if(i == 0)
                         {
-                            stop = true;
+                            auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[i]);
 
-                            if(i == 0)
+                            assing_to_ret;
+                        }
+                        else
+                        {
+                            long long x;
+                            for(x=i; x >= 0; x--)
                             {
-                                auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[i]);
+                                tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[x]);
 
-                                assing_to_ret;
-                            }
-                            else
-                            {
-                                long long x;
-                                for(x=i; x >= 0; x--)
+                                if(!is_every_param_present(all_params_that_need_to_be_present, tuple_output))
                                 {
-                                    tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[x]);
-
-                                    if(!is_every_param_present(all_params_that_need_to_be_present, tuple_output))
-                                    {
-                                        // x--;
-                                        break;
-                                    }
+                                    // x--;
+                                    break;
                                 }
-
-                                auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[x + 1]);
-
-                                assing_to_ret;
                             }
+
+                            auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[x + 1]);
+
+                            assing_to_ret;
                         }
                     }
                 }
             }
-            if(stop) return ret;
-
-            // counter++;
-            // if((counter * chunk_size) > all_lines.size()) break;
-        // }
-        return INVALID_VALUE;
+        }
+        return ret;
     }
 
 private:
