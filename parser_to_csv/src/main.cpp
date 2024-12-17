@@ -259,50 +259,68 @@ class All_Category_Combinations
         ;
 
         omp_set_num_threads(12);
-        #pragma omp parallel for schedule(static) shared(ret, stop)
-        for(u64 i = 0; i < all_lines.size(); i++)
-        {
-            if(stop) continue;
-            auto tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[i]);
 
-            if(is_every_param_present(all_params_that_need_to_be_present, tuple_output))
+        time_stamp("iterative search " << all_lines.size());
+
+        // u64 chunk_size = NUM_2(100, 000);
+        // u64 counter{};
+        // u64 start{};
+        // u64 end{};
+
+        // for(;;)
+        // {
+        //     start = (counter) * chunk_size;
+        //     end = (counter + 1) * chunk_size;
+        //     if(end > all_lines.size()) { end = all_lines.size(); }
+
+            #pragma omp parallel for schedule(static) shared(ret, stop)
+            // for(u64 i = start; i < end; i++)
+            for(u64 i = 0; i < all_lines.size(); i++)
             {
-                #pragma omp critical
+                if(stop) continue;
+                auto tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[i]);
+
+                if(is_every_param_present(all_params_that_need_to_be_present, tuple_output))
                 {
-                    if(!stop)
+                    #pragma omp critical
                     {
-                        stop = true;
-
-                        if(i == 0)
+                        if(!stop)
                         {
-                            auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[i]);
+                            stop = true;
 
-                            assing_to_ret;
-                        }
-                        else
-                        {
-                            long long x;
-                            for(x=i; x >= 0; x--)
+                            if(i == 0)
                             {
-                                tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[x]);
+                                auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[i]);
 
-                                if(!is_every_param_present(all_params_that_need_to_be_present, tuple_output))
-                                {
-                                    // x--;
-                                    break;
-                                }
+                                assing_to_ret;
                             }
+                            else
+                            {
+                                long long x;
+                                for(x=i; x >= 0; x--)
+                                {
+                                    tuple_output = Format_Buffer::input_log_line_output_variables(all_lines[x]);
 
-                            auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[x + 1]);
+                                    if(!is_every_param_present(all_params_that_need_to_be_present, tuple_output))
+                                    {
+                                        // x--;
+                                        break;
+                                    }
+                                }
 
-                            assing_to_ret;
+                                auto[adding_read] = Format_Buffer::input_log_line_output_variables(all_lines[x + 1]);
+
+                                assing_to_ret;
+                            }
                         }
                     }
                 }
             }
-        }
-        if(stop) return ret;
-        
+            if(stop) return ret;
+
+            // counter++;
+            // if((counter * chunk_size) > all_lines.size()) break;
+        // }
         return INVALID_VALUE;
     }
 
@@ -625,7 +643,7 @@ public:
         {
             if(!combination_possible_in_this_group(X_line, LINE_combinations, list_of_chart_params)) { continue; }
             if(contains<string>("measuring_r", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
-            
+
             // po kolei wyświetlam każdy parametr CHART
             FILE << "GROUP;";
             put_into_file_one_after_another_separation_by_coma(list_of_chart_params);

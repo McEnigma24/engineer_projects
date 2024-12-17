@@ -68,3 +68,8 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
+
+
+#define NUM_2(a, b) a##b
+#define NUM_3(a, b, c) a##b##c
+#define NUM_4(a, b, c, d) a##b##c##d
