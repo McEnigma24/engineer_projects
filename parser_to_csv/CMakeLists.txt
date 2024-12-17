@@ -22,14 +22,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 ### ORIGINAL ###
 
-# Targety
 # set(EXE_NAME "single_op_avg_og.exe")
 # add_executable(${EXE_NAME} ${SOURCES})
 # target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE AVG ORIGINAL)
 # set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
 # target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
 
-# Targety
 # set(EXE_NAME "single_op_dev_og.exe")
 # add_executable(${EXE_NAME} ${SOURCES})
 # target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE DEV ORIGINAL)
@@ -51,19 +49,17 @@ target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
 
 ### FILTERED ###
 
-# Targety
-# set(EXE_NAME "single_op_avg_filt.exe")
-# add_executable(${EXE_NAME} ${SOURCES})
-# target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE AVG FILTERED)
-# set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
-# target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
+set(EXE_NAME "single_op_avg_filt.exe")
+add_executable(${EXE_NAME} ${SOURCES})
+target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE AVG FILTERED)
+set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
+target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
 
-# Targety
-# set(EXE_NAME "single_op_dev_filt.exe")
-# add_executable(${EXE_NAME} ${SOURCES})
-# target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE DEV FILTERED)
-# set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
-# target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
+set(EXE_NAME "single_op_dev_filt.exe")
+add_executable(${EXE_NAME} ${SOURCES})
+target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE DEV FILTERED)
+set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
+target_link_libraries(${EXE_NAME} PUBLIC OpenMP::OpenMP_CXX)
 
 set(EXE_NAME "main_avg_filt.exe")
 add_executable(${EXE_NAME} ${SOURCES})

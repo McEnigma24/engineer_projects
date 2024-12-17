@@ -204,14 +204,16 @@ class All_Category_Combinations
         }
         else
         {
-            time_stamp("hash table   starting... " << hash_table_name)
+            time_stamp("hash table creation - starting... " << hash_table_name);
 
             hash_map.reserve(GROUP_CHART_combinations.size() * LINE_combinations.size() * X_line.size());
 
             for(auto& parametry_wykresu : GROUP_CHART_combinations)
             {
+                // time_stamp("hash table creation - new group" << hash_table_name);
                 for(auto& parametry_linii : LINE_combinations)
                 {
+                    // time_stamp("hash table creation - new line combinations" << hash_table_name);
                     for(auto& x : X_line)
                     {
                         string str = in_order_param_concatinator(x, parametry_linii, parametry_wykresu);
@@ -224,7 +226,7 @@ class All_Category_Combinations
                     }
                 }
             }
-            time_stamp("hash table   DONE " << hash_table_name);
+            time_stamp("hash table creation - DONE " << hash_table_name);
 
             serialize_binary(hash_map, file_path);
         }
@@ -760,14 +762,17 @@ int main(int argc, char* argv[])
         comb.start(TASK, {SIZE, UNIT}, {RATING, MODEL, ARCH}, true, {NUM_OF_THREADS, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
         comb.start(TASK, {SIZE, MODEL, ARCH}, {RATING, UNIT}, true, {NUM_OF_THREADS, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
 
-        comb.start(NUM_OF_THREADS, {TASK, MODEL, ARCH}, {PROCESSOR}, true, {RATING, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
 
-        comb.start(NUM_OF_THREADS, {UNIT, MODEL, ARCH, PROCESSOR}, {TASK}, true, {RATING, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
-        comb.start(NUM_OF_THREADS, {MODEL, ARCH}, {TASK, PROCESSOR, UNIT}, true, {RATING, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
+        // bez SIZE -> to za dużo grup // !!!!!!!!!!!!!!!
 
-        // każdy model po koleji
-        comb.start(MODEL, {TASK}, {PROCESSOR, UNIT, RATING}, true, {PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, NUM_OF_THREADS});
-        comb.start(MODEL, {UNIT}, {TASK, RATING}, true, {PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, NUM_OF_THREADS});
+        // comb.start(NUM_OF_THREADS, {TASK, MODEL, ARCH}, {PROCESSOR}, true, {RATING, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
+
+        // comb.start(NUM_OF_THREADS, {UNIT, MODEL, ARCH, PROCESSOR}, {TASK}, true, {RATING, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
+        // comb.start(NUM_OF_THREADS, {MODEL, ARCH}, {TASK, PROCESSOR, UNIT}, true, {RATING, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION});
+
+        // // każdy model po koleji
+        // comb.start(MODEL, {TASK}, {PROCESSOR, UNIT, RATING}, true, {PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, NUM_OF_THREADS});
+        // comb.start(MODEL, {UNIT}, {TASK, RATING}, true, {PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, NUM_OF_THREADS});
 
     #endif
 
