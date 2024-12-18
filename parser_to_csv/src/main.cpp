@@ -123,6 +123,135 @@ std::unordered_map<std::string, double> deserialize_binary(const std::string& fi
     return map;
 }
 
+
+
+struct Multi_Tree_Node
+{
+    Multi_Tree_Node* parent;
+    vector<Multi_Tree_Node*> children;
+    string id;
+    double value;
+
+    Multi_Tree_Node(Multi_Tree_Node* p, string i, double v)
+        :parent(p)
+        ,id(i)
+        ,value(v)
+    {
+    }
+};
+
+class Tree
+{
+    Multi_Tree_Node* top;
+
+    vector<string> params_to_strings(tupl all_params)
+    {
+        auto& [adding_read] = all_params;
+
+        vector<string> all_params_in_order;
+        all_params_in_order.push_back(read_processor);
+        all_params_in_order.push_back(read_model);
+        all_params_in_order.push_back(read_arch);
+        all_params_in_order.push_back(read_unit);
+        all_params_in_order.push_back(read_physical_cores);
+        all_params_in_order.push_back(read_logical_cores);
+        all_params_in_order.push_back(read_core_proportion);
+
+        #ifdef MAIN
+            all_params_in_order.push_back(read_scene);
+            all_params_in_order.push_back(read_lights);
+            all_params_in_order.push_back(read_spheres);
+            all_params_in_order.push_back(read_bounces);
+        #endif
+        #ifdef SINGLE
+            all_params_in_order.push_back(read_task);
+            all_params_in_order.push_back(read_size);
+        #endif
+
+        all_params_in_order.push_back(read_num_of_threads);
+        all_params_in_order.push_back(read_rating);
+
+        return all_params_in_order;
+    }
+    void add_one_value_IMP(Multi_Tree_Node* current_node, const vector<string>& all_params_in_order, u64 param_index, const double& value)
+    {
+        bool last_one = (param_index == all_params_in_order.size() - 1);
+        const string current_id = all_params_in_order[param_index];
+
+        if(!last_one)
+        {
+            for(auto& child : current_node->children)
+            {
+                if(child->id == current_id)
+                {
+                    add_one_value_IMP(child, all_params_in_order, param_index + 1, value);
+                    return;
+                }
+            }
+
+            Multi_Tree_Node* new_node = new Multi_Tree_Node(current_node, current_id, INVALID_VALUE); // node pośredni
+            current_node->children.push_back(new_node); // dodanie do dzieci parenta
+            add_one_value_IMP(new_node, all_params_in_order, param_index + 1, value); // przechodzimy dalej puki nie skończą się parametry
+        }
+        else
+        {
+            Multi_Tree_Node* new_node = new Multi_Tree_Node(current_node, current_id, value); // ostatni -> faktyczna wartość
+            current_node->children.push_back(new_node); // dodanie do dzieci parenta
+        }
+    }
+    double get_value_IMP(Multi_Tree_Node* current_node, const vector<string>& all_params_in_order, u64 param_index)
+    {
+        bool last_one = (param_index == all_params_in_order.size());
+
+        if(last_one)
+        {
+            return current_node->value;
+        }
+        else
+        {
+            const string current_id = all_params_in_order[param_index];
+
+            for(auto& child : current_node->children)
+            {
+                if(child->id == current_id)
+                {
+                    return get_value_IMP(child, all_params_in_order, param_index + 1);
+                }
+            }
+        }
+
+        return INVALID_VALUE;
+    }
+
+public:
+
+    Tree()
+    {
+        top = new Multi_Tree_Node(nullptr, "", INVALID_VALUE);
+    }
+
+    double get_value(tupl all_params)
+    {
+        vector<string> all_params_in_order = params_to_strings(all_params);
+
+        return get_value_IMP(top, all_params_in_order, 0);
+    }
+    void add_value(tupl all_params)
+    {
+        vector<string> all_params_in_order = params_to_strings(all_params);
+        auto& [adding_read] = all_params;
+
+        add_one_value_IMP(top, all_params_in_order, 0,
+                                                        AVG_LINE(read_VALUE_avg / NUM_3(1,000,000))
+                                                        DEV_LINE(read_VALUE_rel_dev)
+        );
+    }
+};
+
+vector<Tree*> all_trees; // każdy plik po prostu tworzy swoje drzewo i dodaje pointer do niego tutaj -> tworzy z new i nie zwalnia
+
+
+
 class All_Category_Combinations
 {
     string input_dir;
@@ -172,7 +301,6 @@ class All_Category_Combinations
 
         return ret;
     }
-
     // HASH //
     string create_index_combination_to_string(const category_index& ind_X, const vector<category_index>& ind_LINEs, const vector<category_index>& ind_CHARTs)
     {
@@ -218,10 +346,11 @@ class All_Category_Combinations
                     {
                         string str = in_order_param_concatinator(x, parametry_linii, parametry_wykresu);
 
-                        double value = iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
-                        // if(value == INVALID_VALUE) continue;
-                        if(isnan(value)) continue;
+                        double value = 
+                                        // iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
+                                        tree_value_for_line_with(x, parametry_linii, parametry_wykresu);
 
+                        if(isnan(value)) continue;
                         hash_map[str] = value;
                     }
                 }
@@ -240,6 +369,33 @@ class All_Category_Combinations
         }
 
         return INVALID_VALUE;
+    }
+    // TREE //
+    double tree_value_for_line_with(const string& x, const vector<string>& parametry_linii, const vector<string>& parametry_wykresu)
+    {
+        vector<string> all_params_that_need_to_be_present;
+        all_params_that_need_to_be_present.push_back(x);
+        all_params_that_need_to_be_present.insert(all_params_that_need_to_be_present.end(), parametry_linii.begin(), parametry_linii.end());
+        all_params_that_need_to_be_present.insert(all_params_that_need_to_be_present.end(), parametry_wykresu.begin(), parametry_wykresu.end());
+
+        double ret = INVALID_VALUE;
+
+        // trzeba będzie to posortować -> w drzewie przewiduję, że one są w normalnej kolejności
+        // przejechać przez wszystkie kategorie i sprawdzić jaki komu index odpowiada -> taka będzie kolejność argumentów
+        // TO -> in_which_category_can_we_find_this_value(string) -> daje indexy
+
+
+        // HERE //
+
+
+        for(auto& tree : all_trees)
+        {
+            time_stamp("tree search");
+            ret = tree.get_value(all_params_that_need_to_be_present);
+
+            if(!isnan(ret)) break;
+        }
+        return ret;
     }
     // PARALLEL //
     double iterative_value_for_line_with(const string& x, const vector<string>& parametry_linii, const vector<string>& parametry_wykresu)
@@ -313,14 +469,19 @@ private:
         for (const auto& log_file_path : std::filesystem::directory_iterator(input_dir))
         {
             if (!log_file_path.is_regular_file()) continue;
-
             string log_file = log_file_path.path().string();
             if (filesystem::path(log_file).extension() == ".tar") continue;
+
+            Tree* current_tree = new Tree();
+            all_trees.push_back(current_tree);
 
             ifstream is(log_file); string line;
             while(getline(is, line))
             {
-                all_lines.push_back(line);
+                all_lines.push_back(line); // stare
+
+                if(line != "")
+                    current_tree->add_value(Format_Buffer::input_log_line_output_variables(line));
             }
         }
     }
@@ -519,8 +680,6 @@ private:
     }
     bool combination_has_value(const string x, const vector<string>& line_params, const vector<string>& chart_params)
     {
-        // return INVALID_VALUE != hash_value_for_line_with(x, line_params, chart_params);
-
         return ! isnan(hash_value_for_line_with(x, line_params, chart_params));
     }
     bool check_for_repeating_categories(const category_index& ind_X, const vector<category_index>& ind_LINEs, const vector<category_index>& ind_CHARTs)
