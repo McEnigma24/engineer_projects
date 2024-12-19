@@ -36,23 +36,26 @@
 #define AVG_LINE(...) 
 #endif
 
-template <typename T>
-bool contains(const T& value, const std::vector<T>& vec)
-{
-    return std::find(vec.begin(), vec.end(), value) != vec.end();
-}
+namespace utils{
 
-template <typename T>
-void remove_by_value(const T& value, std::vector<T>& vec)
-{
-    auto it = std::find(vec.begin(), vec.end(), value);
-
-    if (it != vec.end())
+    template <typename T>
+    bool contains(const T& value, const std::vector<T>& vec)
     {
-        vec.erase(it);
+        return std::find(vec.begin(), vec.end(), value) != vec.end();
     }
-}
 
+    template <typename T>
+    void remove_by_value(const T& value, std::vector<T>& vec)
+    {
+        auto it = std::find(vec.begin(), vec.end(), value);
+
+        if (it != vec.end())
+        {
+            vec.erase(it);
+        }
+    }
+
+}
 using namespace std;
 
 #define var(x) cout << #x << " = " << x << '\n';
