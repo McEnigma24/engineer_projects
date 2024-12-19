@@ -395,8 +395,8 @@ class All_Category_Combinations
                         string str = in_order_param_concatinator(x, parametry_linii, parametry_wykresu);
 
                         double value = 
-                                        // iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
-                                        tree_value_for_line_with(tree, x, parametry_linii, parametry_wykresu);
+                                        iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
+                                        // tree_value_for_line_with(tree, x, parametry_linii, parametry_wykresu);
 
                         if(isnan(value)) continue;
                         hash_map[str] = value;
@@ -598,7 +598,7 @@ private:
     }
     bool is_present_in_category(int index, string input)
     {
-        return utils::contains(input, categories[index]);
+        return vec_utils::contains(input, categories[index]);
     }
     void add_unique(int index, string input)
     {
@@ -734,12 +734,12 @@ private:
     }
     bool check_for_repeating_categories(const category_index& ind_X, const vector<category_index>& ind_LINEs, const vector<category_index>& ind_CHARTs)
     {
-        if(utils::contains(ind_X, ind_LINEs)) return true;
-        if(utils::contains(ind_X, ind_CHARTs)) return true;
+        if(vec_utils::contains(ind_X, ind_LINEs)) return true;
+        if(vec_utils::contains(ind_X, ind_CHARTs)) return true;
 
         for(auto& single_line_index : ind_LINEs)
         {
-            if(utils::contains(single_line_index, ind_CHARTs)) return true;
+            if(vec_utils::contains(single_line_index, ind_CHARTs)) return true;
         }
 
         return false;
@@ -817,8 +817,8 @@ public:
                     exit(0);
                 }
 
-                utils::remove_by_value(ind_to_skip, ind_LINEs);
-                utils::remove_by_value(ind_to_skip, ind_CHARTs);
+                vec_utils::remove_by_value(ind_to_skip, ind_LINEs);
+                vec_utils::remove_by_value(ind_to_skip, ind_CHARTs);
             }
         }
 
@@ -834,7 +834,7 @@ public:
         for(auto& list_of_chart_params : GROUP_CHART_combinations)
         {
             if(!combination_possible_in_this_group(X_line, LINE_combinations, list_of_chart_params)) { continue; }
-            // if(utils::contains<string>("measuring_r", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
+            if(vec_utils::contains<string>("measuring_r", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
 
             // po kolei wyświetlam każdy parametr CHART
             FILE << "GROUP;";

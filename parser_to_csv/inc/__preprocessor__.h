@@ -36,7 +36,16 @@
 #define AVG_LINE(...) 
 #endif
 
-namespace utils{
+namespace vec_utils{
+
+    template <typename T>
+    void print_on_by_one(const std::vector<T>& vec)
+    {
+        for(auto& v : vec)
+        {
+            std::cout << v << "\n";
+        }
+    }
 
     template <typename T>
     bool contains(const T& value, const std::vector<T>& vec)
