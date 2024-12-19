@@ -395,8 +395,8 @@ class All_Category_Combinations
                         string str = in_order_param_concatinator(x, parametry_linii, parametry_wykresu);
 
                         double value = 
-                                        iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
-                                        // tree_value_for_line_with(tree, x, parametry_linii, parametry_wykresu);
+                                        // iterative_value_for_line_with(x, parametry_linii, parametry_wykresu);
+                                        tree_value_for_line_with(tree, x, parametry_linii, parametry_wykresu);
 
                         if(isnan(value)) continue;
                         hash_map[str] = value;
@@ -466,7 +466,7 @@ class All_Category_Combinations
 
         #define assing_to_ret \
         ret = \
-        AVG_LINE((double)read_VALUE_avg / 1) \
+        AVG_LINE((double)read_VALUE_avg / NUM_3(1,000,000)) \
         DEV_LINE(read_VALUE_rel_dev) \
         ;
 
@@ -834,6 +834,7 @@ public:
         for(auto& list_of_chart_params : GROUP_CHART_combinations)
         {
             if(!combination_possible_in_this_group(X_line, LINE_combinations, list_of_chart_params)) { continue; }
+            if(vec_utils::contains<string>("measuring_r", list_of_chart_params) && !vec_utils::contains<string>("1_th", X_line)) { continue; } // tak, żeby zrobiły tylko dla BEST
 
             // po kolei wyświetlam każdy parametr CHART
             FILE << "GROUP;";
@@ -872,7 +873,9 @@ public:
                         continue;
                     }
 
-                    FILE << setprecision(2) << hash_value_for_line_with(x, list_of_line_params, list_of_chart_params) << ";";
+                    FILE
+                     << setprecision(9)
+                     << hash_value_for_line_with(x, list_of_line_params, list_of_chart_params) << ";";
                 }
                 FILE << "\n";
             }
