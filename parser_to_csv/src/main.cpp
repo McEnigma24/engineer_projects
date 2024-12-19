@@ -370,7 +370,7 @@ class All_Category_Combinations
 
                 tupl line_params = Format_Buffer::input_log_line_output_variables(line);
 
-                vector<string> params_in_order_and_filtered = Tree:params_to_strings_not_all_indexes(line_params, ind_TO_SKIP);
+                vector<string> params_in_order_and_filtered = Tree::params_to_strings_not_all_indexes(line_params, ind_TO_SKIP);
 
                 auto& [adding_read] = line_params;
                 tree.add_value(params_in_order_and_filtered,
@@ -598,7 +598,7 @@ private:
     }
     bool is_present_in_category(int index, string input)
     {
-        return contains(input, categories[index]);
+        return utils::contains(input, categories[index]);
     }
     void add_unique(int index, string input)
     {
@@ -734,12 +734,12 @@ private:
     }
     bool check_for_repeating_categories(const category_index& ind_X, const vector<category_index>& ind_LINEs, const vector<category_index>& ind_CHARTs)
     {
-        if(contains(ind_X, ind_LINEs)) return true;
-        if(contains(ind_X, ind_CHARTs)) return true;
+        if(utils::contains(ind_X, ind_LINEs)) return true;
+        if(utils::contains(ind_X, ind_CHARTs)) return true;
 
         for(auto& single_line_index : ind_LINEs)
         {
-            if(contains(single_line_index, ind_CHARTs)) return true;
+            if(utils::contains(single_line_index, ind_CHARTs)) return true;
         }
 
         return false;
@@ -817,8 +817,8 @@ public:
                     exit(0);
                 }
 
-                remove_by_value(ind_to_skip, ind_LINEs);
-                remove_by_value(ind_to_skip, ind_CHARTs);
+                utils::remove_by_value(ind_to_skip, ind_LINEs);
+                utils::remove_by_value(ind_to_skip, ind_CHARTs);
             }
         }
 
@@ -829,12 +829,12 @@ public:
         string hash_table_name = create_index_combination_to_string(ind_X, ind_LINEs, ind_CHARTs);
 
         // HASH //
-        create_hash_table_for_this_set_of_params(hash_table_name, X_line, LINE_combinations, GROUP_CHART_combinations);
+        create_hash_table_for_this_set_of_params(hash_table_name, X_line, LINE_combinations, GROUP_CHART_combinations, ind_TO_SKIP);
 
         for(auto& list_of_chart_params : GROUP_CHART_combinations)
         {
             if(!combination_possible_in_this_group(X_line, LINE_combinations, list_of_chart_params)) { continue; }
-            // if(contains<string>("measuring_r", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
+            // if(utils::contains<string>("measuring_r", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
 
             // po kolei wyświetlam każdy parametr CHART
             FILE << "GROUP;";
