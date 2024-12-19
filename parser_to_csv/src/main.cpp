@@ -466,7 +466,7 @@ class All_Category_Combinations
 
         #define assing_to_ret \
         ret = \
-        AVG_LINE((double)read_VALUE_avg / 1000000) \
+        AVG_LINE((double)read_VALUE_avg / 1) \
         DEV_LINE(read_VALUE_rel_dev) \
         ;
 
@@ -834,7 +834,6 @@ public:
         for(auto& list_of_chart_params : GROUP_CHART_combinations)
         {
             if(!combination_possible_in_this_group(X_line, LINE_combinations, list_of_chart_params)) { continue; }
-            if(vec_utils::contains<string>("measuring_r", list_of_chart_params)) { continue; } // tak, żeby zrobiły tylko dla BEST
 
             // po kolei wyświetlam każdy parametr CHART
             FILE << "GROUP;";
@@ -922,7 +921,7 @@ int main(int argc, char* argv[])
         // BEST vs FIRST //
         comb.start(SCENE, {MODEL, ARCH, UNIT}, {RATING}, true, {LIGHTS, SPHERES, BOUNCES, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, NUM_OF_THREADS}); // przez rating, są unikatowe
         comb.start(SCENE, {MODEL, ARCH}, {UNIT, RATING}, true, {LIGHTS, SPHERES, BOUNCES, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION, NUM_OF_THREADS});
-        
+
         // WYKRESY PER THREAD //
         comb.start(NUM_OF_THREADS, {SCENE, UNIT, ARCH}, {MODEL, RATING}, true, {LIGHTS, SPHERES, BOUNCES, PHYSICAL_CORES, LOGICAL_CORES, CORE_PROPORTION}); // tylko tu jest konflikt
 
