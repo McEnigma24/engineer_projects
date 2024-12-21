@@ -7,6 +7,7 @@
 #include <cstring>
 #include <tuple>
 #include <cstdlib>
+#include <vector>
 
 #ifdef SINGLE
 #define SINGLE_LINE(...) _VA_ARGS_

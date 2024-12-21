@@ -1,7 +1,6 @@
 #include "__preprocessor__.h"
 #include "stats_pack.h"
 #include <filesystem>
-#include <vector>
 
 #ifdef SINGLE
 #include "_SINGLE_.h"
@@ -128,9 +127,14 @@ vector<u64> single_line_recal(tupl& all_tuples, const vector<u64>& all_raw_data_
     auto& [adding_read] = all_tuples;
     stats_pack filtered_stats;
 
+    double dev_limit = 
+    // 100.0
+    70.0
+    ;
+
     for(auto& x : all_raw_data_points)
     {
-        if(not(100.0 < deviation_of_single_point(x, read_VALUE_avg)))
+        // if(not(dev_limit < deviation_of_single_point(x, read_VALUE_avg)))
         {
             filtered_stats.push(x);
         }
@@ -242,7 +246,7 @@ vector<string> correct_for_models(const vector<string>& input)
             break;
         }
     }
-    for(u64 i=input.size()-1; i>=0; i--)
+    for(u64 i=input.size()-1; i>0; i--)
     {
         if(input[i] == "") continue;
 
@@ -255,7 +259,11 @@ vector<string> correct_for_models(const vector<string>& input)
         }
     }
 
-    int cpu_conter = counter_to_use_for_this_model(captured_models_so_far, cpu_model);
+    cout << "Captured Model \n";
+    var(cpu_model);
+    var(gpu_model);
+
+    int cpu_counter = counter_to_use_for_this_model(captured_models_so_far, cpu_model);
     int gpu_counter = counter_to_use_for_this_model(captured_models_so_far, gpu_model);
 
     vector<string> ret;
@@ -264,16 +272,17 @@ vector<string> correct_for_models(const vector<string>& input)
         auto tulpes = Format_Buffer::input_log_line_output_variables(line);
         auto& [adding_read] = tulpes;
 
-        if(read_processor == "CPU_proc" && cpu_conter > 1)
+        if(read_processor == "CPU_proc" && cpu_counter > 1)
         {
-            read_model += "counter_" + std::to_string(cpu_conter);
+            read_model += "_counter_" + std::to_string(cpu_counter) + "_mod";
         }
-        else if(read_processor == "GPU_proc" && gpu_conter > 1)
+        else if(read_processor == "GPU_proc" && gpu_counter > 1)
         {
-            read_model += "counter_" + std::to_string(cpu_conter);
+            read_model += "_counter_" + std::to_string(gpu_counter) + "_mod";
         }
 
-        ret.push_back(Format_Buffer::input_variables_return_log_line(tulpes));
+        vector<u64> all_raw_data_points = get_all_raw_data_points(raw_data_points_STR(line));
+        ret.push_back(Format_Buffer::input_variables_return_log_line(tulpes) + " " + data_points_to_string(all_raw_data_points));
     }
 
     return ret;
@@ -324,11 +333,13 @@ int main(int argc, char* argv[])
         string log_file = log_file_path.path().string();
 
         vector<string> original_file_lines = get_all_file_lines(log_file);
-        vectro<string> different_models_check = correct_for_models(original_file_lines);
-        vector<string> modified_output = create_output_lines(different_models_check);
+
+        cout << log_file << endl;
+        vector<string> filtered_output = create_output_lines(original_file_lines);
+        vector<string> different_models_check = correct_for_models(filtered_output);
 
         string path = dir_output + string("/") + get_just_the_file_name(log_file);
-        save_file(path, modified_output);
+        save_file(path, different_models_check);
     }
 
     return 0;
