@@ -134,7 +134,7 @@ vector<u64> single_line_recal(tupl& all_tuples, const vector<u64>& all_raw_data_
 
     for(auto& x : all_raw_data_points)
     {
-        // if(not(dev_limit < deviation_of_single_point(x, read_VALUE_avg)))
+        if(not(dev_limit < deviation_of_single_point(x, read_VALUE_avg)))
         {
             filtered_stats.push(x);
         }
@@ -274,11 +274,11 @@ vector<string> correct_for_models(const vector<string>& input)
 
         if(read_processor == "CPU_proc" && cpu_counter > 1)
         {
-            read_model += "_counter_" + std::to_string(cpu_counter) + "_mod";
+            read_model += "_counter_" + std::to_string(cpu_counter);
         }
         else if(read_processor == "GPU_proc" && gpu_counter > 1)
         {
-            read_model += "_counter_" + std::to_string(gpu_counter) + "_mod";
+            read_model += "_counter_" + std::to_string(gpu_counter);
         }
 
         vector<u64> all_raw_data_points = get_all_raw_data_points(raw_data_points_STR(line));

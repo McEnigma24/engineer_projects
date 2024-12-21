@@ -874,7 +874,7 @@ public:
                     }
 
                     FILE
-                     << setprecision(9) // 16
+                     << setprecision(16)
                      << hash_value_for_line_with(x, list_of_line_params, list_of_chart_params) << ";";
                 }
                 FILE << "\n";
