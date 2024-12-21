@@ -18,12 +18,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 set(EXE_NAME "main.exe")
 add_executable(${EXE_NAME} ${SOURCES})
-target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE)
+target_compile_definitions(${EXE_NAME} PRIVATE LINUX MAIN)
 set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
 
 set(EXE_NAME "single.exe")
 add_executable(${EXE_NAME} ${SOURCES})
-target_compile_definitions(${EXE_NAME} PRIVATE LINUX MAIN)
+target_compile_definitions(${EXE_NAME} PRIVATE LINUX SINGLE)
 set_target_properties(${EXE_NAME} PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
 
 # # Włączenie testów

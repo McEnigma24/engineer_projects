@@ -20,6 +20,36 @@
 #define MAIN_LINE(...) 
 #endif
 
+namespace vec_utils{
+
+    template <typename T>
+    void print_on_by_one(const std::vector<T>& vec)
+    {
+        for(auto& v : vec)
+        {
+            std::cout << v << "\n";
+        }
+    }
+
+    template <typename T>
+    bool contains(const T& value, const std::vector<T>& vec)
+    {
+        return std::find(vec.begin(), vec.end(), value) != vec.end();
+    }
+
+    template <typename T>
+    void remove_by_value(const T& value, std::vector<T>& vec)
+    {
+        auto it = std::find(vec.begin(), vec.end(), value);
+
+        if (it != vec.end())
+        {
+            vec.erase(it);
+        }
+    }
+
+}
+
 using namespace std;
 
 #define path_run_time_config "../run_time_config"
@@ -42,6 +72,7 @@ typedef uint64_t u64;
 #define base_0(x) (x - 1)
 
 #define c_init(x) x(_##x)
+#define cc_init(x) this->x = x;
 #define member_assign(a, b, member) a.member = b.member;
 #define THIS_OTHER(x) this->x = other.x;
 

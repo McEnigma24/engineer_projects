@@ -194,6 +194,91 @@ string modyfied_line(tupl& all_tuples, const string& whole_line)
     return ret;
 }
 
+struct Model_info
+{
+    string model_name;
+    int counter;
+
+    Model_info(const string& _model_name)
+        :c_init(model_name)
+        ,counter(1)
+    {
+    }
+};
+
+vector<Model_info> captured_models_so_far;
+
+int counter_to_use_for_this_model(vector<Model_info>& captured_models_so_far, const string& model)
+{
+    if(model == "") return 0;
+
+    for(auto& captured_model : captured_models_so_far)
+    {
+        if(captured_model.model_name == model)
+        {
+            return ++captured_model.counter;
+        }
+    }
+
+    // adding new
+    captured_models_so_far.push_back(model);
+    return 1;
+}
+
+vector<string> correct_for_models(const vector<string>& input)
+{
+    string cpu_model = "";
+    string gpu_model = "";
+
+    for(u64 i=0; i<input.size(); i++)
+    {
+        if(input[i] == "") continue;
+
+        auto [adding_read] = Format_Buffer::input_log_line_output_variables(input[i]);
+
+        if(read_processor == "CPU_proc")
+        {
+            cpu_model = read_model;
+            break;
+        }
+    }
+    for(u64 i=input.size()-1; i>=0; i--)
+    {
+        if(input[i] == "") continue;
+
+        auto [adding_read] = Format_Buffer::input_log_line_output_variables(input[i]);
+
+        if(read_processor == "GPU_proc")
+        {
+            gpu_model = read_model;
+            break;
+        }
+    }
+
+    int cpu_conter = counter_to_use_for_this_model(captured_models_so_far, cpu_model);
+    int gpu_counter = counter_to_use_for_this_model(captured_models_so_far, gpu_model);
+
+    vector<string> ret;
+    for(auto& line : input)
+    {
+        auto tulpes = Format_Buffer::input_log_line_output_variables(line);
+        auto& [adding_read] = tulpes;
+
+        if(read_processor == "CPU_proc" && cpu_conter > 1)
+        {
+            read_model += "counter_" + std::to_string(cpu_conter);
+        }
+        else if(read_processor == "GPU_proc" && gpu_conter > 1)
+        {
+            read_model += "counter_" + std::to_string(cpu_conter);
+        }
+
+        ret.push_back(Format_Buffer::input_variables_return_log_line(tulpes));
+    }
+
+    return ret;
+}
+
 vector<string> create_output_lines(const vector<string>& input)
 {
     vector<string> ret;
@@ -239,7 +324,8 @@ int main(int argc, char* argv[])
         string log_file = log_file_path.path().string();
 
         vector<string> original_file_lines = get_all_file_lines(log_file);
-        vector<string> modified_output = create_output_lines(original_file_lines);
+        vectro<string> different_models_check = correct_for_models(original_file_lines);
+        vector<string> modified_output = create_output_lines(different_models_check);
 
         string path = dir_output + string("/") + get_just_the_file_name(log_file);
         save_file(path, modified_output);
